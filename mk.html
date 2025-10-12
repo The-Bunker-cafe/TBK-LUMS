@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bunker Cafe POS System</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<style>
+* { box-sizing:border-box; }
+body { margin:0; font-family:'Poppins',sans-serif; background:linear-gradient(135deg,#0d0d0d,#1a1a1a); color:#eee; min-height:100vh; display:flex; flex-direction:column;}
+header { background:rgba(20,20,20,0.95); padding:18px 20px; font-size:30px; font-family:'Playfair Display',serif; font-weight:700; text-align:center; letter-spacing:2px; border-bottom:3px solid; border-image:linear-gradient(90deg,#ffd700,#ff7f50) 1; text-shadow:0 0 8px #ffd70066;}
+nav { background: rgba(25,25,25,0.95); display:flex; justify-content:center; gap:14px; padding:12px 0; border-bottom:1px solid #444; box-shadow:0 2px 10px #000a inset;}
+nav button { background:transparent; border:2px solid #ffd700; color:#ffd700; padding:10px 22px; font-weight:600; cursor:pointer; border-radius:30px; transition: all 0.3s ease; box-shadow:0 0 6px #ffd70033;}
+nav button.active, nav button:hover { background: linear-gradient(135deg,#ffd700,#ff7f50); color:#121212; box-shadow:0 0 12px #ffd700cc,0 0 20px #ff7f50aa; transform:translateY(-2px);}
+main { flex:1; display:flex; padding:20px; gap:20px; overflow:hidden;}
+#posPage { display:flex; flex:1; gap:20px; overflow:hidden;}
+#menu { flex:3; background: rgba(30,30,30,0.85); border-radius:16px; padding:22px; overflow-y:auto; box-shadow: 0 0 15px #ffd70033 inset; backdrop-filter: blur(6px);}
+#menu h2 { margin-top:0; margin-bottom:20px; font-weight:700; font-size:26px; font-family:'Playfair Display',serif; border-bottom:2px solid #ff7f50; padding-bottom:6px; text-shadow:0 0 4px #ffd700aa;}
+.menu-controls{ display:flex; gap:10px; align-items:center; margin-bottom:14px; flex-wrap:wrap;}
+.category-btn{ background:transparent; border:1px solid #666; color:#eee; padding:6px 12px; border-radius:20px; cursor:pointer; }
+.category-btn.active{ background: linear-gradient(135deg,#ffd700,#ff7f50); color:#121212; border-color:transparent; box-shadow:0 0 10px #ffd70066;}
+.menu-grid { display:grid; grid-template-columns: repeat(auto-fill,minmax(140px,1fr)); gap:16px; }
+.menu-item { background: rgba(50,50,50,0.9); border-radius:14px; padding:12px; text-align:center; box-shadow:0 0 10px #ffd70022,0 0 15px #ff7f50aa inset; transition: transform 0.2s ease, box-shadow 0.3s ease;}
+.menu-item:hover { transform:translateY(-5px); box-shadow:0 0 20px #ffd70055,0 0 25px #ff7f50cc inset;}
+.menu-item img { width:100%; height:100px; object-fit:cover; border-radius:10px; margin-bottom:10px; }
+.menu-item h4 { margin:0 0 6px 0; font-size:18px; }
+.menu-item p { font-size:16px; margin:0 0 10px 0; }
+.menu-item button { background: linear-gradient(135deg,#ffd700,#ff7f50); color:#121212; border:none; padding:8px 16px; font-weight:700; border-radius:30px; cursor:pointer; transition: background 0.3s ease, box-shadow 0.3s ease; }
+.menu-item button:hover { background: linear-gradient(135deg,#ffdc70,#ff9a50); box-shadow:0 0 12px #ffd70077; }
+#order { flex:2; background: rgba(25,25,25,0.85); border-radius:16px; padding:22px; display:flex; flex-direction:column; box-shadow:0 0 20px #ffd70033 inset; backdrop-filter: blur(6px);}
+#order h2 { margin-top:0; font-size:24px; font-weight:700; border-bottom:2px solid #ff7f50; padding-bottom:8px; margin-bottom:15px; text-align:center; text-shadow:0 0 4px #ffd700aa;}
+.order-controls{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:12px;}
+.order-controls label{ font-weight:600;}
+.order-controls select, .order-controls input{ padding:8px; border-radius:8px; border:1px solid #444; background: rgba(0,0,0,0.6); color:#eee;}
+table { width:100%; border-collapse:collapse; background: rgba(0,0,0,0.6); color:#eee; font-size:16px;}
+th,td{ padding:10px 8px; border:1px solid #444; text-align:center; }
+th{ background:#333;}
+tbody tr:hover{ background:#444;}
+.total{ margin-top:15px; font-size:20px; font-weight:700; text-align:right; color:#ffd700;}
+button#printBtn { margin-top:10px; background: linear-gradient(135deg,#ffd700,#ff7f50); border:none; padding:12px 0; font-weight:700; font-size:18px; color:#121212; border-radius:30px; cursor:pointer; transition: background 0.3s ease, box-shadow 0.3s ease;}
+button#printBtn:hover { background: linear-gradient(135deg,#ffdc70,#ff9a50); box-shadow:0 0 14px #ffd70077; }
+button.remove-btn { background:#e03e3e; border:none; color:#fff; padding:6px 12px; border-radius:20px; cursor:pointer; font-weight:600; transition: background 0.3s ease; }
+button.remove-btn:hover{ background:#b22b2b; }
+#recordPage { flex:1; overflow-y:auto; background: rgba(30,30,30,0.85); border-radius:16px; padding:22px; box-shadow:0 0 15px #ffd70033 inset; backdrop-filter: blur(6px); display:none;}
+#recordPage h2{ font-size:28px;font-weight:700; border-bottom:3px solid #ff7f50; padding-bottom:10px; margin-bottom:20px; text-align:center; text-shadow:0 0 4px #ffd700aa;}
+#salesTable th, #salesTable td{ border:1px solid #444; padding:10px; text-align:center; background: rgba(0,0,0,0.6); color:#eee;}
+#salesTable th{ background:#333;}
+#downloadPdfBtn{ margin-top:20px; background: linear-gradient(135deg,#ffd700,#ff7f50); border:none; padding:12px 0; font-weight:700; font-size:18px; color:#121212; border-radius:30px; cursor:pointer; transition: all 0.3s ease; }
+#downloadPdfBtn:hover { background: linear-gradient(135deg,#ffdc70,#ff9a50); box-shadow:0 0 14px #ffd70077;}
+.record-filters{ display:flex; gap:10px; align-items:center; margin-bottom:12px; flex-wrap:wrap;}
+#managePage { flex:1; background: rgba(30,30,30,0.85); border-radius:16px; padding:22px; overflow-y:auto; box-shadow:0 0 15px #ffd70033 inset; backdrop-filter: blur(6px); display:none;}
+#managePage h2{ font-size:28px; font-weight:700; border-bottom:3px solid #ff7f50; padding-bottom:10px; margin-bottom:20px; text-align:center; text-shadow:0 0 4px #ffd700aa;}
+.input-group label{ font-weight:600; margin-bottom:6px; display:block;}
+.input-group input{ width:100%; padding:10px; border-radius:8px; border:1px solid #444; background: rgba(0,0,0,0.6); color:#eee; font-size:16px;}
+button#addItemBtn{ width:100%; background: linear-gradient(135deg,#ffd700,#ff7f50); border:none; padding:12px 0; font-weight:700; font-size:18px; color:#121212; border-radius:30px; cursor:pointer; transition: all 0.3s ease;}
+button#addItemBtn:hover { background: linear-gradient(135deg,#ffdc70,#ff9a50); box-shadow:0 0 14px #ffd70077; }
+ul#itemList li{ background: rgba(0,0,0,0.6); border:1px solid #444; border-radius:12px; margin-bottom:10px; padding:12px; display:flex; justify-content:space-between; align-items:center; }
+ul#itemList li span{ flex:1; font-weight:600; }
+ul#itemList li button.deleteItemBtn{ background:#e03e3e; border:none; color:white; padding:6px 14px; border-radius:20px; cursor:pointer; font-weight:600; transition: background 0.3s ease;}
+ul#itemList li button.deleteItemBtn:hover{ background:#b22b2b; }
+@media(max-width:900px){ main{ flex-direction:column; padding:10px; } #posPage{ flex-direction:column; } #menu,#order,#recordPage,#managePage{ flex:none; width:100%; max-height:400px; } }
+</style>
+</head>
+<body>
+<header>BUNKER CAFE </header>
+<nav>
+<button id="tabPos" class="active">POS / Order</button>
+<button id="tabRecord">Sales Record</button>
+<button id="tabManage">Manage Items</button>
+</nav>
+<main>
+<section id="posPage">
+<section id="menu">
+<h2>Menu</h2>
+<div class="menu-controls">
+  <div id="categoryButtons"></div>
+  <!-- optional: future search -->
+</div>
+<div class="menu-grid" id="menuItems"></div>
+</section>
+<section id="order">
+<h2>Order & Receipt</h2>
+
+<div class="order-controls">
+  <label>Payment:</label>
+  <select id="paymentType">
+    <option value="Cash">Cash</option>
+    <option value="Online">Online</option>
+  </select>
+
+  <label>Date:</label>
+  <input type="date" id="orderDate">
+
+  <label>Shift:</label>
+  <select id="orderShift">
+    <option value="Morning">Morning</option>
+    <option value="Evening">Evening</option>
+  </select>
+</div>
+
+<table>
+<thead>
+<tr><th>Item</th><th>Qty</th><th>Unit Price</th><th>Total</th><th>Remove</th></tr>
+</thead>
+<tbody id="orderBody"></tbody>
+</table>
+<div class="total">Total: ₹<span id="orderTotal">0</span></div>
+<button id="printBtn">Print Receipt & Save Sale</button>
+</section>
+</section>
+
+<section id="recordPage">
+<h2>Sales Record</h2>
+
+<div class="record-filters">
+  <label>Date:</label>
+  <input type="date" id="filterDate">
+
+  <label>Shift:</label>
+  <select id="filterShift">
+    <option value="All">All</option>
+    <option value="Morning">Morning</option>
+    <option value="Evening">Evening</option>
+  </select>
+
+  <label>Payment:</label>
+  <select id="filterPayment">
+    <option value="All">All</option>
+    <option value="Cash">Cash</option>
+    <option value="Online">Online</option>
+  </select>
+
+  <button id="applyFilterBtn" class="category-btn">Apply Filter</button>
+  <button id="clearFilterBtn" class="category-btn">Clear</button>
+</div>
+
+<table id="salesTable">
+<thead>
+<tr>
+<th>Item Name</th><th>Qty Sold</th><th>Unit Price</th><th>Total Sale</th><th>Payment</th><th>Date</th><th>Shift</th>
+</tr>
+</thead>
+<tbody id="salesBody"></tbody>
+</table>
+
+<div id="salesSummary" class="total" style="text-align:left; margin-top:12px;">
+  Cash Total: ₹<span id="cashTotal">0</span> &nbsp;&nbsp; Online Total: ₹<span id="onlineTotal">0</span> &nbsp;&nbsp; Grand Total: ₹<span id="grandTotal">0</span>
+</div>
+<button id="downloadPdfBtn">Download Sales Report (PDF)</button>
+</section>
+
+<section id="managePage">
+<h2>Manage Items</h2>
+<div class="input-group">
+<label for="itemName">Item Name</label>
+<input type="text" id="itemName" placeholder="Enter item name" />
+</div>
+<div class="input-group">
+<label for="itemPrice">Item Price (₹)</label>
+<input type="number" id="itemPrice" placeholder="Enter item price" min="1" />
+</div>
+<div class="input-group">
+<label for="itemCategory">Category</label>
+<input type="text" id="itemCategory" placeholder="Enter category (e.g. Coffee)" />
+</div>
+<div class="input-group">
+<label for="itemImage">Image URL</label>
+<input type="text" id="itemImage" placeholder="Enter image URL" />
+</div>
+<button id="addItemBtn">Add Item</button>
+<ul id="itemList"></ul>
+</section>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+<script>
+// ---------------------- DATA ----------------------
+const items = [
+  {id:1, name:"Espresso", price:180, category:"Coffee", image:"1.jpg"},
+  {id:2, name:"Americano", price:180, category:"Coffee", image:"2.jpg"},
+  {id:3, name:"Cappuccino/Latte", price:220, category:"Coffee", image:"3.jpg"},
+  {id:4, name:"Spanish Latte", price:250, category:"Coffee", image:"4.jpg"},
+  {id:5, name:"French Vanilla Latte", price:280, category:"Coffee", image:"5.jpg"},
+  {id:6, name:"Dark Mocha Latte", price:280, category:"Coffee", image:"6.jpg"},
+  {id:7, name:"Irish Caramel Latte", price:280, category:"Coffee", image:"7.jpg"},
+  {id:8, name:"Roasted Hazelnut Latte", price:280, category:"Coffee", image:"8.jpg"},
+  {id:9, name:"Cinnamon Spice Latte", price:280, category:"Coffee", image:"9.jpg"},
+  {id:10, name:"Sticky Toffee Latte", price:280, category:"Coffee", image:"bunk/11.jpg"},
+  {id:11, name:"Classic Belgian", price:320, category:"Hot Chocolate", image:"22.jpg"},
+  {id:12, name:"S'mores", price:320, category:"Hot Chocolate", image:"33.jpg"},
+  {id:13, name:"Mint", price:320, category:"Hot Chocolate", image:"44.jpg"},
+  {id:14, name:"Iced Americano", price:200, category:"Iced Coffee", image:"55.jpg"},
+  {id:15, name:"Iced Latte", price:280, category:"Iced Coffee", image:"66.jpg"},
+  {id:16, name:"Iced Spanish Latte", price:300, category:"Iced Coffee", image:"77.jpg"},
+  {id:17, name:"Iced Vanilla Latte", price:300, category:"Iced Coffee", image:"88.jpg"},
+  {id:18, name:"Iced Mocha Latte", price:300, category:"Iced Coffee", image:"99.jpg"},
+  {id:19, name:"Iced Caramel Latte", price:300, category:"Iced Coffee", image:"111.jpg"},
+  {id:20, name:"Iced Hazelnut Latte", price:300, category:"Iced Coffee", image:"222.jpg"},
+  {id:21, name:"Iced Cinnamon Latte", price:300, category:"Iced Coffee", image:"333.jpg"},
+  {id:22, name:"Iced Toffee Latte", price:300, category:"Iced Coffee", image:"444.jpg"},
+  {id:23, name:"Vanilla Iced Matcha", price:480, category:"Matcha", image:"555.jpg"},
+  {id:24, name:"Matcha Frappe", price:500, category:"Matcha", image:"666.jpg"},
+  {id:25, name:"Virgin Vanilla", price:450, category:"Frappe", image:"777.jpg"},
+  {id:26, name:"Mean Matcha", price:480, category:"Frappe", image:"888.jpg"},
+  {id:27, name:"Cool Caramel", price:480, category:"Frappe", image:"999.jpg"},
+  {id:28, name:"Hero Hazelnut", price:480, category:"Frappe", image:"1111.jpg"},
+  {id:29, name:"Banana Shake", price:280, category:"Shake", image:"22.jpg"},
+  {id:30, name:"Strawberry Shake", price:280, category:"Shake", image:"33.jpg"},
+  {id:31, name:"Cookies Shake", price:300, category:"Shake", image:"44.jpg"},
+  {id:32, name:"Chocolate Shake", price:300, category:"Shake", image:"55.jpg"},
+  {id:33, name:"Lotus Shake", price:320, category:"Shake", image:"6.jpg"},
+  {id:34, name:"Mango Shake", price:320, category:"Shake", image:"7.jpg"},
+  {id:35, name:"Ferrero Rocher Shake", price:350, category:"Shake", image:"8888.jpg"},
+  {id:36, name:"Kinder Shake", price:350, category:"Shake", image:"99.jpg"},
+  {id:37, name:"Sunrise Smoothie", price:380, category:"Smoothie", image:"111.jpg"},
+  {id:38, name:"Sunset in Paradise Smoothie", price:350, category:"Smoothie", image:"22.jpg"},
+  {id:39, name:"Mint Margarita Smoothie", price:250, category:"Smoothie", image:"44.jpg"},
+  {id:40, name:"Green Tea", price:80, category:"Tea", image:"33.jpg"},
+  {id:41, name:"Milk Tea", price:100, category:"Tea", image:"6.jpg"},
+  {id:42, name:"Peach Iced Tea", price:150, category:"Iced Tea", image:"77.jpg"},
+  {id:43, name:"Lemon Iced Tea", price:150, category:"Iced Tea", image:"7.jpg"},
+  {id:44, name:"Strawberry Iced Tea", price:150, category:"Iced Tea", image:"bunk/45.jpg"},
+  {id:45, name:"Passion Fruit Lemonade", price:200, category:"Lemonade", image:"9.jpg"},
+  {id:46, name:"Strawberry Lemonade", price:200, category:"Lemonade", image:"6.jpg"},
+  {id:47, name:"Mint Lemonade", price:200, category:"Lemonade", image:"4.jpg"},
+  {id:48, name:"Blue Ocean Lemonade", price:200, category:"Lemonade", image:"2.jpg"},
+  {id:49, name:"Cheese Toastie", price:180, category:"Sandwich", image:"4.jpg"},
+  {id:50, name:"Chicken Panini", price:280, category:"Sandwich", image:"3.jpg"},
+  {id:51, name:"French Toast", price:300, category:"Breakfast", image:"2.jpg"},
+  {id:52, name:"Mac and Cheese", price:400, category:"Pasta", image:"3.jpg"},
+  {id:53, name:"Blueberry Slushee", price:150, category:"Slushee", image:"6.jpg"},
+  {id:54, name:"Strawberry Slushee", price:150, category:"Slushee", image:"66.jpg"},
+  {id:55, name:"Green Apple Slushee", price:150, category:"Slushee", image:"88.jpg"},
+  {id:56, name:"Mix Berry Slushee", price:150, category:"Slushee", image:"55.jpg"},
+  {id:57, name:"Peach Slushee", price:150, category:"Slushee", image:"33.jpg"}
+];
+
+let order = [];
+let sales = [];
+let db = null;
+let currentCategory = "All";
+
+// ---------------------- IndexedDB ----------------------
+const request = indexedDB.open("BunkerCafeDB", 1);
+request.onupgradeneeded = (event) => {
+  db = event.target.result;
+  if (!db.objectStoreNames.contains("items")) db.createObjectStore("items", { keyPath: "id" });
+  if (!db.objectStoreNames.contains("sales")) db.createObjectStore("sales", { keyPath: "id" });
+};
+request.onsuccess = (event) => {
+  db = event.target.result;
+  loadItemsFromDB(() => {
+    renderMenu();
+    renderManage();
+    buildCategoryButtons();
+  });
+  loadSalesFromDB(() => {
+    renderSales();
+  });
+};
+request.onerror = (event) => console.error("IndexedDB error:", event.target.error);
+
+function saveItemsToDB() {
+  if (!db) return;
+  const tx = db.transaction("items", "readwrite");
+  const store = tx.objectStore("items");
+  // clear and repopulate items store
+  store.clear();
+  items.forEach((item) => store.put(item));
+}
+function loadItemsFromDB(callback) {
+  if (!db) { if (callback) callback(); return; }
+  const tx = db.transaction("items", "readonly");
+  const store = tx.objectStore("items");
+  const req = store.getAll();
+  req.onsuccess = () => {
+    if (req.result.length > 0) {
+      items.length = 0;
+      req.result.forEach((i) => items.push(i));
+      if (callback) callback();
+    } else {
+      // populate DB from default in-memory `items`
+      saveItemsToDB();
+      if (callback) callback();
+    }
+  };
+  req.onerror = (e) => { console.error("loadItemsFromDB error:", e); if (callback) callback(); };
+}
+
+function saveSalesToDB() {
+  if (!db) return;
+  const tx = db.transaction("sales", "readwrite");
+  const store = tx.objectStore("sales");
+  // We'll store sales as an array under a single key id='all' or as multiple records?
+  // To keep compatibility with previous implementation (array of objects with keyPath id),
+  // we'll clear and repopulate using each sale's id as key. If ids collide we can still overwrite.
+  store.clear();
+  // ensure each sale has unique id; if multiple records may have same original id, we can create composite keys.
+  // We'll give each sale a unique internalSalesId to be used as keyPath
+  // But DB objectStore currently has keyPath 'id' (used by items originally). To avoid changing store structure,
+  // we will store sales with id as incremental unique (if existing records had item ids, those will be preserved).
+  // Map current sales to store.put with their id field (if duplicated, we'll add suffix).
+  let counter = 1;
+  const toPut = [];
+  sales.forEach(s => {
+    // if s._dbId exists keep it; else assign one
+    if (!s._dbId) s._dbId = 's_' + Date.now() + '_' + (counter++);
+    // create an object copy where keyPath is '_dbId' mapped to 'id' for storage
+    const storeObj = Object.assign({}, s);
+    storeObj.id = storeObj._dbId; // store's keyPath = id
+    toPut.push(storeObj);
+  });
+  toPut.forEach(o => store.put(o));
+  tx.oncomplete = () => { /* saved */ };
+  tx.onerror = (e) => console.error("saveSalesToDB transaction error:", e);
+}
+
+function loadSalesFromDB(callback) {
+  if (!db) { if (callback) callback(); return; }
+  const tx = db.transaction("sales", "readonly");
+  const store = tx.objectStore("sales");
+  const req = store.getAll();
+  req.onsuccess = () => {
+    // req.result are stored objects where original sale fields are present but 'id' may be internal _dbId
+    const raw = req.result || [];
+    // Map back to sales[] normalized format
+    sales = [];
+    raw.forEach(r => {
+      // Restore actual sale data; stored items might have been saved with 'name','price','qty','paymentType','date','shift'
+      // Old legacy records might only have id,name,price,qty (no paymentType,date,shift)
+      // We'll normalize:
+      const normalized = {
+        // some old saved objects might have been put with key 'id' as item id; if 'origId' exists, use it
+        id: (typeof r.id === 'string' && r._origId) ? r._origId : (r.id || r._origId || r.itemId || r.item_id || r._itemId || r.itemId),
+        // but many existing legacy saved records were using item id numeric under 'id' previously. To be safe:
+        name: r.name || r.itemName || 'Unknown',
+        price: typeof r.price === 'number' ? r.price : parseFloat(r.price) || 0,
+        qty: typeof r.qty === 'number' ? r.qty : parseInt(r.qty) || 0,
+        paymentType: r.paymentType || 'Cash',
+        date: r.date || (new Date()).toISOString().split('T')[0],
+        shift: r.shift || 'Morning',
+        _dbId: r.id || ('s_legacy_' + Math.random().toString(36).slice(2,9))
+      };
+      // ensure id numeric where possible
+      if (typeof normalized.id === 'string' && /^\d+$/.test(normalized.id)) normalized.id = parseInt(normalized.id);
+      sales.push(normalized);
+    });
+    if (callback) callback();
+  };
+  req.onerror = (e) => { console.error("loadSalesFromDB error:", e); if (callback) callback(); };
+}
+
+// ---------------------- UI Rendering ----------------------
+function buildCategoryButtons(){
+  const container = document.getElementById('categoryButtons');
+  container.innerHTML = '';
+  const categories = Array.from(new Set(items.map(i=>i.category || 'Uncategorized'))).sort();
+  const allBtn = document.createElement('button');
+  allBtn.className = 'category-btn active';
+  allBtn.innerText = 'All';
+  allBtn.addEventListener('click', ()=>{ currentCategory='All'; document.querySelectorAll('.category-btn').forEach(b=>b.classList.remove('active')); allBtn.classList.add('active'); renderMenu();});
+  container.appendChild(allBtn);
+  categories.forEach(cat=>{
+    const btn=document.createElement('button');
+    btn.className='category-btn';
+    btn.innerText=cat;
+    btn.addEventListener('click', ()=>{
+      currentCategory = cat;
+      document.querySelectorAll('.category-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      renderMenu();
+    });
+    container.appendChild(btn);
+  });
+}
+
+function renderMenu(){
+  const menuDiv = document.getElementById('menuItems');
+  menuDiv.innerHTML = '';
+  const filtered = currentCategory === 'All' ? items : items.filter(i=> (i.category||'Uncategorized') === currentCategory);
+  filtered.forEach(item=>{
+    const div = document.createElement('div');
+    div.className='menu-item';
+    div.innerHTML=`<img src="${item.image}" alt="${item.name}" onerror="this.onerror=null;this.src='https://via.placeholder.com/300x200?text=No+Image'"><h4>${item.name}</h4><p>₹${item.price}</p><button>Add</button>`;
+    div.querySelector('button').addEventListener('click',()=>addToOrder(item));
+    menuDiv.appendChild(div);
+  });
+}
+
+function renderManage(){
+  const ul=document.getElementById('itemList');
+  ul.innerHTML='';
+  items.forEach(i=>{
+    const li=document.createElement('li');
+    li.innerHTML=`<span>${i.name} - ₹${i.price} <small style="opacity:0.7;">(${i.category || 'Uncategorized'})</small></span> <button class="deleteItemBtn">Delete</button>`;
+    li.querySelector('.deleteItemBtn').addEventListener('click',()=>{
+      const idx = items.findIndex(x => x.id === i.id);
+      if (idx > -1) items.splice(idx,1);
+      renderMenu(); renderManage(); buildCategoryButtons();
+      saveItemsToDB();
+    });
+    ul.appendChild(li);
+  });
+}
+
+function renderOrder(){
+  const tbody=document.getElementById('orderBody');
+  tbody.innerHTML='';
+  let total=0;
+  order.forEach(o=>{
+    const tr=document.createElement('tr');
+    const itemTotal=o.price*o.qty;
+    total+=itemTotal;
+    tr.innerHTML=`<td>${o.name}</td><td>${o.qty}</td><td>₹${o.price}</td><td>₹${itemTotal}</td><td><button class="remove-btn">Remove</button></td>`;
+    tr.querySelector('.remove-btn').addEventListener('click',()=>{
+      order = order.filter(x=>x.id!==o.id);
+      renderOrder();
+    });
+    tbody.appendChild(tr);
+  });
+  document.getElementById('orderTotal').innerText=total;
+}
+
+function renderSales(filteredSales){
+  // if filteredSales provided use it else use all sales
+  const data = filteredSales || sales;
+  const tbody=document.getElementById('salesBody');
+  tbody.innerHTML='';
+  let cashTotal=0, onlineTotal=0, grandTotal=0;
+  data.forEach(s=>{
+    const tr=document.createElement('tr');
+    const total = s.price * s.qty;
+    if (s.paymentType === 'Cash') cashTotal += total;
+    else if (s.paymentType === 'Online') onlineTotal += total;
+    grandTotal += total;
+    tr.innerHTML=`<td>${s.name}</td><td>${s.qty}</td><td>₹${s.price}</td><td>₹${total}</td><td>${s.paymentType || 'Cash'}</td><td>${s.date || ''}</td><td>${s.shift || ''}</td>`;
+    tbody.appendChild(tr);
+  });
+  document.getElementById('cashTotal').innerText = cashTotal;
+  document.getElementById('onlineTotal').innerText = onlineTotal;
+  document.getElementById('grandTotal').innerText = grandTotal;
+}
+
+// ---------------------- Cart / Sales Logic ----------------------
+function addToOrder(item){
+  const existing = order.find(o=>o.id===item.id);
+  if(existing) existing.qty++;
+  else order.push({...item,qty:1});
+  renderOrder();
+}
+
+// initialize order date to today
+(function initOrderDate(){
+  const d = new Date();
+  const iso = d.toISOString().split('T')[0];
+  document.getElementById('orderDate').value = iso;
+})();
+
+document.getElementById('printBtn').addEventListener('click',()=>{
+  if(order.length===0){alert('No items in order!'); return;}
+  const paymentType = document.getElementById('paymentType').value;
+  const date = document.getElementById('orderDate').value || (new Date()).toISOString().split('T')[0];
+  const shift = document.getElementById('orderShift').value || 'Morning';
+
+  // prepare receipt text
+  let receiptHeader = 'BUNKER CAFE\n\n';
+  receiptHeader += `Date: ${date}    Shift: ${shift}\nPayment: ${paymentType}\n\n`;
+  let receiptBody = '';
+  let total = 0;
+  order.forEach(o=>{
+    const lineTotal = o.price * o.qty;
+    receiptBody += `${o.name} x${o.qty} - ₹${lineTotal}\n`;
+    total += lineTotal;
+
+    // merge into sales if same item + paymentType + date + shift exists
+    const match = sales.find(s => s.name === o.name && s.paymentType === paymentType && s.date === date && s.shift === shift && s.price === o.price);
+    if (match) {
+      match.qty += o.qty;
+    } else {
+      const saleRecord = {
+        id: o.id,
+        name: o.name,
+        price: o.price,
+        qty: o.qty,
+        paymentType,
+        date,
+        shift
+      };
+      sales.push(saleRecord);
+    }
+  });
+
+  // persist sales safely
+  saveSalesToDB();
+
+  // produce printable receipt in new window (better formatted)
+  const newWin = window.open('', '_blank');
+  newWin.document.write('<html><head><title>Receipt</title><style>body{font-family:sans-serif;padding:20px;color:#000} pre{font-size:14px}</style></head><body>');
+  newWin.document.write('<h2>BUNKER CAFE</h2>');
+  newWin.document.write(`<div>Date: ${date} &nbsp;&nbsp; Shift: ${shift} &nbsp;&nbsp; Payment: ${paymentType}</div>`);
+  newWin.document.write('<hr>');
+  newWin.document.write('<pre style="font-size:15px;">');
+  newWin.document.write(receiptBody + '\n');
+  newWin.document.write('Total: ₹' + total + '\n\nThank you!\n');
+  newWin.document.write('</pre>');
+  newWin.document.write('</body></html>');
+  newWin.document.close();
+  newWin.focus();
+  newWin.print();
+  newWin.close();
+
+  // clear order and refresh
+  order = [];
+  renderOrder();
+  renderSales();
+});
+
+// ---------------------- Tabs ----------------------
+document.getElementById('tabPos').addEventListener('click',()=>{showTab('pos');});
+document.getElementById('tabRecord').addEventListener('click',()=>{showTab('record');});
+document.getElementById('tabManage').addEventListener('click',()=>{showTab('manage');});
+function showTab(tab){
+  document.getElementById('posPage').style.display = tab==='pos'?'flex':'none';
+  document.getElementById('recordPage').style.display = tab==='record'?'block':'none';
+  document.getElementById('managePage').style.display = tab==='manage'?'block':'none';
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+  if(tab==='pos') document.getElementById('tabPos').classList.add('active');
+  else if(tab==='record') document.getElementById('tabRecord').classList.add('active');
+  else if(tab==='manage') document.getElementById('tabManage').classList.add('active');
+}
+
+// ---------------------- PDF Download ----------------------
+document.getElementById('downloadPdfBtn').addEventListener('click',()=>{
+  if(sales.length===0){alert('No sales yet!'); return;}
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('p','pt','a4');
+  doc.setFontSize(18); doc.text('Bunker Cafe Sales Report',40,40);
+  const rows = sales.map(s=>[s.name, s.qty, `₹${s.price}`, `₹${s.price*s.qty}`, s.paymentType, s.date, s.shift]);
+  doc.autoTable({head:[['Item','Qty','Unit Price','Total','Payment','Date','Shift']], body:rows, startY:70, styles:{fontSize:10}});
+  doc.save('SalesReport.pdf');
+});
+
+// ---------------------- Manage Items: Add ----------------------
+document.getElementById('addItemBtn').addEventListener('click',()=>{
+  const name=document.getElementById('itemName').value.trim();
+  const price=parseFloat(document.getElementById('itemPrice').value);
+  const image=document.getElementById('itemImage').value.trim();
+  const category=document.getElementById('itemCategory').value.trim() || 'Custom';
+  if(!name||!price){alert('Fill name and price'); return;}
+  const newId = items.length ? Math.max(...items.map(i=>i.id))+1 : 1;
+  const newItem = { id:newId, name, price, image: image || 'https://via.placeholder.com/300x200?text=No+Image', category };
+  items.push(newItem);
+  saveItemsToDB();
+  document.getElementById('itemName').value=''; document.getElementById('itemPrice').value=''; document.getElementById('itemImage').value=''; document.getElementById('itemCategory').value='';
+  renderMenu(); renderManage(); buildCategoryButtons();
+});
+
+// ---------------------- Filters for Sales Record ----------------------
+document.getElementById('applyFilterBtn').addEventListener('click', ()=>{
+  const date = document.getElementById('filterDate').value;
+  const shift = document.getElementById('filterShift').value;
+  const payment = document.getElementById('filterPayment').value;
+  let filtered = sales.slice();
+  if(date) filtered = filtered.filter(s => s.date === date);
+  if(shift && shift !== 'All') filtered = filtered.filter(s => (s.shift || 'Morning') === shift);
+  if(payment && payment !== 'All') filtered = filtered.filter(s => (s.paymentType || 'Cash') === payment);
+  renderSales(filtered);
+});
+document.getElementById('clearFilterBtn').addEventListener('click', ()=>{
+  document.getElementById('filterDate').value = '';
+  document.getElementById('filterShift').value = 'All';
+  document.getElementById('filterPayment').value = 'All';
+  renderSales();
+});
+
+// ---------------------- Initial render (best-effort) ----------------------
+renderMenu();
+buildCategoryButtons();
+renderManage();
+renderOrder();
+renderSales();
+
+</script>
+</body>
+</html>
